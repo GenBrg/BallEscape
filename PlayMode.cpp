@@ -45,15 +45,6 @@ PlayMode::PlayMode() : scene(*ball_escape_scene) {
 // 	upper_leg_base_rotation = upper_leg->rotation;
 // 	lower_leg_base_rotation = lower_leg->rotation;
 
-	// Add sectors
-//	auto *transform = new Scene::Transform();
-
-//	transform->position[0] = 1;
-//	scene.drawables.emplace_back(transform);
-//	auto& drawable = scene.drawables.back();
-//	drawable.pipeline = lit_color_texture_program_pipeline;
-//	Sector sector(&drawable);
-//	sector.set_type(Sector::Type::RED, 2);
 
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) {
@@ -191,7 +182,6 @@ void PlayMode::update(float elapsed) {
         }
         platforms.emplace_back(1 + random() % 4, random() % 5, init_height);
     }
-
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
@@ -211,38 +201,40 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 //    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClearDepth(1.0f); //1.0 is actually the default value to clear the depth buffer to, but FYI you can change it.
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//	glClearDepth(1.0f); //1.0 is actually the default value to clear the depth buffer to, but FYI you can change it.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS); //this is the default depth comparison function, but FYI you can change it.
 
-	// push all platforms' sectors to drawables vector
-	size_t before_size = scene.drawables.size();
-	std::vector <Scene::Transform* > temp_transforms;
-    for(auto& platform: platforms) {
-        for(size_t i = 0; i < platform.sectors.size(); i++) {
-            // Add sectors
-            auto transform_p = platform.get_transform(i);
-            scene.drawables.emplace_back(transform_p);
-            auto& drawable = scene.drawables.back();
-            drawable.pipeline = lit_color_texture_program_pipeline;
-            drawable.mesh = &(ball_escape_meshes->lookup(platform.sectors[i].get_mesh_name()));
-            temp_transforms.push_back(transform_p);
+    {
+        // push all platforms' sectors to drawables vector
+        size_t before_size = scene.drawables.size();
+        std::vector <Scene::Transform* > temp_transforms;
+        for(auto& platform: platforms) {
+            for(size_t i = 0; i < platform.sectors.size(); i++) {
+                // Add sectors
+                auto transform_p = platform.get_transform(i);
+                scene.drawables.emplace_back(transform_p);
+                auto& drawable = scene.drawables.back();
+                drawable.pipeline = lit_color_texture_program_pipeline;
+                drawable.mesh = &(ball_escape_meshes->lookup(platform.sectors[i].get_mesh_name()));
+                temp_transforms.push_back(transform_p);
+            }
+        }
+
+        scene.draw(*camera);
+
+        // pop all platforms' sectors out of drawables vector
+        int delete_cnt = (int) (scene.drawables.size() - before_size);
+        for(int i=0; i<delete_cnt; i++) {
+            scene.drawables.pop_back();
+        }
+
+        for(auto t_p: temp_transforms) {
+            delete t_p;
         }
     }
-
-	scene.draw(*camera);
-
-	// pop all platforms' sectors out of drawables vector
-	int delete_cnt = (int) (scene.drawables.size() - before_size);
-	for(int i=0; i<delete_cnt; i++) {
-	    scene.drawables.pop_back();
-	}
-
-	for(auto t_p: temp_transforms) {
-	    delete t_p;
-	}
 
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);

@@ -1,6 +1,7 @@
 #include "Mode.hpp"
 #include "Scene.hpp"
 #include "Platform.hpp"
+#include "Ball.hpp"
 
 #include <glm/glm.hpp>
 
@@ -51,5 +52,7 @@ struct PlayMode : Mode {
 	size_t platform_cnt = 10;
 
 	const double platform_max_height = 3.0f;
+
+	Ball ball;
 
 };
