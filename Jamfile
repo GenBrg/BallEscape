@@ -90,7 +90,6 @@ COMMON_NAMES =
 	Mode
 	GL
 	Load
-	Sector
 	Platform
 	;
 
