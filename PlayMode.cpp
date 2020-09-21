@@ -46,13 +46,13 @@ PlayMode::PlayMode() : scene(*ball_escape_scene) {
 // 	lower_leg_base_rotation = lower_leg->rotation;
 
 
-	auto *transform = new Scene::Transform();
-
-	transform->position[0] = 1;
-	scene.drawables.emplace_back(transform);
-	auto& drawable = scene.drawables.back();
-	drawable.pipeline = lit_color_texture_program_pipeline;
-	drawable.mesh = &(ball_escape_meshes->lookup("Ball"));
+//	auto *transform = new Scene::Transform();
+//
+//	transform->position[0] = 1;
+//	scene.drawables.emplace_back(transform);
+//	auto& drawable = scene.drawables.back();
+//	drawable.pipeline = lit_color_texture_program_pipeline;
+//	drawable.mesh = &(ball_escape_meshes->lookup("Ball"));
 
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) {
@@ -89,6 +89,32 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			down.pressed = true;
 			return true;
 		}
+		// give a force to a ball
+		else if (evt.key.keysym.sym == SDLK_UP) {
+		    if(!hit_forward.pressed) {
+                hit_forward.pressed = true;
+                hit_ball = true;
+		    }
+            return true;
+        } else if (evt.key.keysym.sym == SDLK_DOWN) {
+            if(!hit_backward.pressed) {
+                hit_backward.pressed = true;
+                hit_ball = true;
+            }
+            return true;
+        } else if (evt.key.keysym.sym == SDLK_LEFT) {
+            if(!hit_left.pressed) {
+                hit_left.pressed = true;
+                hit_ball = true;
+            }
+            return true;
+        } else if (evt.key.keysym.sym == SDLK_RIGHT) {
+            if(!hit_right.pressed) {
+                hit_right.pressed = true;
+                hit_ball = true;
+            }
+            return true;
+        }
 	} else if (evt.type == SDL_KEYUP) {
 		if (evt.key.keysym.sym == SDLK_a) {
 			left.pressed = false;
@@ -103,6 +129,20 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			down.pressed = false;
 			return true;
 		}
+        // ball key
+        else if (evt.key.keysym.sym == SDLK_UP) {
+            hit_forward.pressed = false;
+            return true;
+        } else if (evt.key.keysym.sym == SDLK_DOWN) {
+            hit_backward.pressed = false;
+            return true;
+        } else if (evt.key.keysym.sym == SDLK_LEFT) {
+            hit_left.pressed = false;
+            return true;
+        } else if (evt.key.keysym.sym == SDLK_RIGHT) {
+            hit_right.pressed = false;
+            return true;
+        }
 	} else if (evt.type == SDL_MOUSEBUTTONDOWN) {
 		if (SDL_GetRelativeMouseMode() == SDL_FALSE) {
 			SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -190,6 +230,35 @@ void PlayMode::update(float elapsed) {
         }
         platforms.emplace_back(1 + rand() % 4, rand() % 5, init_height);
     }
+
+    // ball update
+    if(hit_ball) {
+        // our camera always looks at the central column, the forward hit, always, give
+        // a hit forward based on the camera's view
+        glm::vec2 init_speed = glm::vec2(0, 0) -
+                glm::vec2(camera->transform->position[0], camera->transform->position[1]);
+        // normalize
+        init_speed = glm::normalize(init_speed);
+
+        if(hit_forward.pressed) {
+            ball.hit(init_speed);
+            hit_ball = false;
+        } else if(hit_backward.pressed) {
+            ball.hit(-init_speed);
+            hit_ball = false;
+        } else if(hit_left.pressed) {
+            ball.hit(glm::vec2(-init_speed[1], init_speed[0]));
+            hit_ball = false;
+        } else if(hit_right.pressed) {
+            ball.hit(glm::vec2(init_speed[1], -init_speed[0]));
+            hit_ball = false;
+        }
+    }
+
+    // fade speed of ball
+    ball.fade(elapsed * ball_friction_acc); // delta v = a * t
+    ball.x += ball.get_speed()[0] * elapsed;
+    ball.y += ball.get_speed()[1] * elapsed;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
@@ -215,34 +284,55 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS); //this is the default depth comparison function, but FYI you can change it.
 
+
+    {
+        // draw ball
+        auto *transform = new Scene::Transform();
+        transform->position[0] = ball.x;
+        transform->position[1] = ball.y;
+//        transform->position[0] = 1;
+        scene.drawables.emplace_back(transform);
+        auto& drawable = scene.drawables.back();
+        drawable.pipeline = lit_color_texture_program_pipeline;
+        drawable.mesh = &(ball_escape_meshes->lookup("Ball"));
+
+    }
+
+    std::vector<Scene::Transform *> temp_sec_transforms;
+    size_t before_size = scene.drawables.size();
     {
         // push all platforms' sectors to drawables vector
-        size_t before_size = scene.drawables.size();
-        std::vector <Scene::Transform* > temp_transforms;
-        for(auto& platform: platforms) {
-            for(size_t i = 0; i < platform.sectors.size(); i++) {
+        for (auto &platform: platforms) {
+            for (size_t i = 0; i < platform.sectors.size(); i++) {
                 // Add sectors
                 auto transform_p = platform.get_transform(i);
                 scene.drawables.emplace_back(transform_p);
-                auto& drawable = scene.drawables.back();
+                auto &drawable = scene.drawables.back();
                 drawable.pipeline = lit_color_texture_program_pipeline;
                 drawable.mesh = &(ball_escape_meshes->lookup(platform.sectors[i].get_mesh_name()));
-                temp_transforms.push_back(transform_p);
+                temp_sec_transforms.push_back(transform_p);
             }
         }
+    }
 
-        scene.draw(*camera);
+    scene.draw(*camera);
 
+    {
         // pop all platforms' sectors out of drawables vector
         int delete_cnt = (int) (scene.drawables.size() - before_size);
         for(int i=0; i<delete_cnt; i++) {
             scene.drawables.pop_back();
         }
-
-        for(auto t_p: temp_transforms) {
+        for(auto t_p: temp_sec_transforms) {
             delete t_p;
         }
     }
+
+    {
+        //clear ball
+        scene.drawables.pop_back();
+    }
+
 
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);

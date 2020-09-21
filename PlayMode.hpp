@@ -25,6 +25,10 @@ struct PlayMode : Mode {
 		uint8_t pressed = 0;
 	} left, right, down, up;
 
+	struct HitBallButton {
+	    bool pressed = false;
+	} hit_forward, hit_backward, hit_left, hit_right;
+
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 
@@ -53,6 +57,10 @@ struct PlayMode : Mode {
 
 	const double platform_max_height = 3.0f;
 
+	//
 	Ball ball;
-
+	double ball_init_vel_per_hit = 1.0f; // init speed
+	double ball_friction_acc = -0.5f;  // acc speed
+    bool hit_ball = false;
+    const double ball_radius = 0.25;
 };
