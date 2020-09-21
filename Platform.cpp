@@ -6,6 +6,7 @@
 #include "Sector.hpp"
 
 #include <random>
+#define M_PI 3.14159265358
 
 static int SECS_PER_PLATFORM = 18;
 
