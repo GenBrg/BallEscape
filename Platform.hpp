@@ -33,7 +33,7 @@ struct Platform {
      * Get a transform for sectors[i]
      * Note: remember to delete
      */
-    Scene::Transform* get_transform(int idx);
+    Scene::Transform* get_transform(size_t idx);
 };
 
 #endif //INC_15_466_F20_BASE1_PLATFORM_H

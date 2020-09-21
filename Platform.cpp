@@ -29,7 +29,7 @@ Platform::Platform(int hole_cnt, int red_cnt, double height_): height(height_), 
     }
 }
 
-Scene::Transform *Platform::get_transform(int idx) {
+Scene::Transform *Platform::get_transform(size_t idx) {
     Scene::Transform* transform_p = new Scene::Transform();
     // calculate the transform based on current height/this sector's relative position
     transform_p->position[2] += height; // becomes higher
