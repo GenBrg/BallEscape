@@ -45,15 +45,6 @@ PlayMode::PlayMode() : scene(*ball_escape_scene) {
 // 	upper_leg_base_rotation = upper_leg->rotation;
 // 	lower_leg_base_rotation = lower_leg->rotation;
 
-
-//	auto *transform = new Scene::Transform();
-//
-//	transform->position[0] = 1;
-//	scene.drawables.emplace_back(transform);
-//	auto& drawable = scene.drawables.back();
-//	drawable.pipeline = lit_color_texture_program_pipeline;
-//	drawable.mesh = &(ball_escape_meshes->lookup("Ball"));
-
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) {
         throw std::runtime_error("Expecting scene to have exactly one camera, but it has "
@@ -61,6 +52,17 @@ PlayMode::PlayMode() : scene(*ball_escape_scene) {
 	}
 	camera = &scene.cameras.front();
 
+	// put ball
+    scene.drawables.emplace_back(ball.transform);
+    auto& drawable = scene.drawables.back();
+    drawable.pipeline = lit_color_texture_program_pipeline;
+    drawable.mesh = &(ball_escape_meshes->lookup("Ball"));
+
+    // init a first platform to hold ball
+    platforms.emplace_back(1 + rand() % 4, rand() % 5, platform_init_height);
+    ball.platform_p = &platforms.back();
+    ball.transform->position[0] = Platform::INNER_RADIUS / 2;
+    ball.transform->position[1] = 0;
 }
 
 PlayMode::~PlayMode() {
@@ -214,16 +216,19 @@ void PlayMode::update(float elapsed) {
 	down.downs = 0;
 
 	// update platform
-	for(auto &platform: platforms) {
+	for(auto& platform: platforms) {
         platform.height += elapsed * platform_up_speed;
-	}
-
-    while(platforms.size() >= 1 && platforms.front().height > platform_max_height) {
-        //todo while (... or ball already pass this platform)
-        platforms.erase(platforms.begin());
     }
 
+//    while(!platforms.empty() && platforms.front().height > platform_max_height) {
+//        //todo while (... or ball already pass this platform)
+//        platforms.erase(platforms.begin());
+//    }
+
+
+
     while(platforms.size() < platform_cnt) {
+        //make sure there are platform_cnt platforms all the time
         double init_height = platform_init_height;
         if(platforms.size() >= 1) {
             init_height = platforms.back().height - platform_interval;
@@ -238,7 +243,7 @@ void PlayMode::update(float elapsed) {
         glm::vec2 init_speed = glm::vec2(0, 0) -
                 glm::vec2(camera->transform->position[0], camera->transform->position[1]);
         // normalize
-        init_speed = glm::normalize(init_speed);
+        init_speed = ball_init_vel_per_hit * glm::normalize(init_speed);
 
         if(hit_forward.pressed) {
             ball.hit(init_speed);
@@ -255,10 +260,22 @@ void PlayMode::update(float elapsed) {
         }
     }
 
-    // fade speed of ball
-    ball.fade(elapsed * ball_friction_acc); // delta v = a * t
-    ball.x += ball.get_speed()[0] * elapsed;
-    ball.y += ball.get_speed()[1] * elapsed;
+    // let ball roll
+    ball.roll(elapsed);
+
+    // check if ball fall to next round
+    if(ball.enter_hole()) {
+        // start deconstruct this level
+        ball.platform_p->start_deconstruct = true;
+        deconstructing_platforms.push_back(*(ball.platform_p));
+        platforms.pop_front();
+        ball.platform_p = &platforms.front();
+    }
+
+//    // traverse all platform in deconstructing update its
+//    for(auto &p: deconstructing_platforms) {
+//
+//    }
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
@@ -283,19 +300,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS); //this is the default depth comparison function, but FYI you can change it.
 
-
-    {
-        // draw ball
-        auto *transform = new Scene::Transform();
-        transform->position[0] = ball.x;
-        transform->position[1] = ball.y;
-//        transform->position[0] = 1;
-        scene.drawables.emplace_back(transform);
-        auto& drawable = scene.drawables.back();
-        drawable.pipeline = lit_color_texture_program_pipeline;
-        drawable.mesh = &(ball_escape_meshes->lookup("Ball"));
-
-    }
 
     std::vector<Scene::Transform *> temp_sec_transforms;
     size_t before_size = scene.drawables.size();
@@ -325,11 +329,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
         for(auto t_p: temp_sec_transforms) {
             delete t_p;
         }
-    }
-
-    {
-        //clear ball
-        scene.drawables.pop_back();
     }
 
 

@@ -3,59 +3,98 @@
 //
 
 #include <deque>
-#include "Platform.hpp"
 #include <iostream>
+#include "Scene.hpp"
 
 #ifndef INC_15_466_F20_BASE1_BALL_H
 #define INC_15_466_F20_BASE1_BALL_H
 
 struct Ball {
-    // which platform it belongs to
-    Platform* platform;
+    constexpr const static double RADIUS = 0.25f;
+    constexpr const static double FRIC_ACC = -0.5f; // acc speed
+    constexpr const static double COLLIDE_SPEED_RATIO = 0.5f; // loss 1 - COLLIDE_SPEED_RATIO speed for each collision
 
     // this ball's transform
     Scene::Transform* transform;
 
-    double x = 0;
-    double y = 0;
+    //which platform holds the ball
+    Platform *platform_p;
+
+
+    Ball() {
+        transform = new Scene::Transform();
+    }
+
+    ~Ball() {
+        delete transform;
+    }
+
+
+private:
 
     // all current forces that apply to this ball
-    std::deque<glm::vec2> speeds;
-
-    void hit(glm::vec2 speed) {
-        speeds.push_back(speed);
-    }
+    glm::vec2 speed;
 
     void fade(double delta_v) {
         // delta_v is a negative
-        for(auto& f: speeds) {
-            if(fabs(f[0]) + delta_v < 0) {
-                f[0] = 0;
-            } else {
-                f[0] = f[0] > 0 ? f[0] + delta_v : f[0] - delta_v;
-            }
-            if(fabs(f[1]) + delta_v < 0) {
-                f[1] = 0;
-            } else {
-                f[1] = f[1] > 0 ? f[1] + delta_v : f[1] - delta_v;
-            }
+        if(fabs(speed[0]) + delta_v < 0) {
+            speed[0] = 0;
+        } else {
+            speed[0] = speed[0] > 0 ? speed[0] + delta_v : speed[0] - delta_v;
         }
-
-        // delete all force that already reaches 0
-        while(!speeds.empty() && speeds.front()[0] == 0 && speeds.front()[1] == 0) {
-            speeds.pop_front();
+        if(fabs(speed[1]) + delta_v < 0) {
+            speed[1] = 0;
+        } else {
+            speed[1] = speed[1] > 0 ? speed[1] + delta_v : speed[1] - delta_v;
         }
     }
 
-    glm::vec2 get_speed() {
-        glm::vec2 res(0, 0);
-        for(auto & f: speeds) {
-            res[0] += f[0];
-            res[1] += f[1];
+public:
+    void roll(double elapsed) {
+        fade(elapsed * FRIC_ACC); // delta v = a * t
+        double delta_x = speed[0] * elapsed;
+        double delta_y = speed[1] * elapsed;
+        transform->position[0] += delta_x;
+        transform->position[1] += delta_y;
+
+        // when hitting the central column or the outer_wall
+        double dist = sqrt(pow(transform->position[1], 2) + pow(transform->position[0], 2));
+
+        if (dist < Platform::CENTRAL_COLUMN_RADIUS + Ball::RADIUS || dist > Platform::INNER_RADIUS - Ball::RADIUS) {
+            // calculate reflect speed when hit the wall or hit the central column
+            glm::vec2 norm = glm::normalize(glm::vec2(transform->position[0], transform->position[1]));
+            glm::vec2 tang = glm::normalize(glm::vec2(-transform->position[1], transform->position[0]));
+            glm::vec2 speed_norm = - glm::dot(norm, speed) * norm; // norm
+            glm::vec2 speed_tangent = glm::dot(tang, speed) * tang; // tangent
+            speed[0] = speed_norm[0] + speed_tangent[0] * COLLIDE_SPEED_RATIO;
+            speed[1] = speed_norm[1] + speed_tangent[1] * COLLIDE_SPEED_RATIO;
         }
-        return res;
+
+        transform->position[2] = platform_p->height + Platform::THICKNESS + Ball::RADIUS;
+
+        //delta_distances
+        double distance = sqrt(delta_x * delta_x + delta_y * delta_y);
+        //rotation axis
+        if(delta_y != 0 || delta_x != 0) {
+            glm::vec3 rot_axis(glm::normalize(glm::vec3(-delta_y, delta_x, 0)));
+            transform->rotation = transform->rotation * glm::angleAxis((float) distance / (float) RADIUS, rot_axis);
+        }
     }
+
+    void hit(glm::vec2 speed_) {
+        speed[0] += speed_[0];
+        speed[1] += speed_[1];
+    }
+
+    bool enter_hole() {
+        return platform_p->get_sec_type(transform->position[0], transform->position[1]) == Sector::SecType::HOLE;
+    }
+
+    bool enter_red() {
+        return platform_p->get_sec_type(transform->position[0], transform->position[1]) == Sector::SecType::RED;
+    }
+
 
 };
 
-#endif //INC_15_466_F20_BASE1_BALL_H
+#endif

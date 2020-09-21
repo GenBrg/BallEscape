@@ -45,22 +45,28 @@ struct PlayMode : Mode {
 	Scene::Camera *camera = nullptr;
 
 	// all platforms
-	std::vector<Platform> platforms;
+	std::deque<Platform> platforms;
+
+	std::vector<Platform> deconstructing_platforms;
 
 	// moving speed up
-	double platform_up_speed = 0.6;
+    double platform_up_speed = 0.6;
 	double platform_interval = 2.5;
 	double platform_init_height = -4.0f;
 
 	// make sure there are at least 10 platforms in the vector
-	size_t platform_cnt = 10;
+	size_t platform_cnt = 5;
 
 	const double platform_max_height = 3.0f;
 
 	//
 	Ball ball;
-	double ball_init_vel_per_hit = 1.0f; // init speed
-	double ball_friction_acc = -0.5f;  // acc speed
+	float ball_init_vel_per_hit = 0.6f; // init speed
+
     bool hit_ball = false;
-    const double ball_radius = 0.25;
+
+
+    //
+    int player_life = 5;
+    int total_score = 0;
 };

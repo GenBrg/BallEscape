@@ -13,7 +13,7 @@ Platform::Platform(int hole_cnt, int red_cnt, double height_): height(height_), 
     int hole_left = hole_cnt;
     int red_left = red_cnt;
     int normal_left = SECS_PER_PLATFORM - hole_cnt - red_cnt;
-    
+
     for(int i=0; i<SECS_PER_PLATFORM; i++) {
         int rand_val = rand() % (hole_left + red_left + normal_left);
         Sector::SecType secType;
@@ -27,8 +27,10 @@ Platform::Platform(int hole_cnt, int red_cnt, double height_): height(height_), 
             secType = Sector::SecType::NORMAL;
             normal_left--;
         }
-        sectors.push_back(
-                Sector(secType,secType == Sector::SecType::HOLE ? 1 + rand() % 2 : rand() % 3));
+
+        Sector sec = Sector(secType,secType == Sector::SecType::HOLE ? 1 + rand() % 2 : rand() % 3);
+        sectors.push_back(sec);
+//        std::cout<<"idx = "<<i<<" type="<<(int)sec.type<<" sub_idx="<<sec.sub_index<<std::endl;
     }
 }
 
@@ -37,10 +39,35 @@ Scene::Transform *Platform::get_transform(size_t idx) {
     // calculate the transform based on current height/this sector's relative position
     transform_p->position[2] += static_cast<float>(height); // becomes higher
 
+    float deg_per_sec = 360.0f / SECS_PER_PLATFORM;
+
     // use angle axis to compute location of this sector
-    transform_p->rotation = transform_p->rotation * glm::angleAxis(
-            glm::radians(idx * 360.0f/SECS_PER_PLATFORM),
+    transform_p->rotation *= glm::angleAxis(
+            glm::radians((idx + 13.0f) * deg_per_sec + deg_per_sec/2),
             glm::vec3(0.0f, 0.0f, 1.0f));
 
     return transform_p;
+}
+
+Sector::SecType Platform::get_sec_type(double x, double y) {
+    //convert to polar coordinates
+    double r = sqrt(x*x + y*y);
+    double degrees = fmod(atan2(y, x) / (2 * M_PI) * 360 + 360, 360);
+
+    float deg_per_sec = 360.0f / SECS_PER_PLATFORM;
+    int idx = degrees / deg_per_sec;
+    Sector::SecType type = Sector::SecType::NORMAL;
+
+    if (r < Sector::INNER_RANGE && sectors[idx].sub_index == 0) {
+        type = sectors[idx].type;
+    } else if(r < Sector::MID_RANGE && r > Sector::INNER_RANGE && sectors[idx].sub_index == 1) {
+        type = sectors[idx].type;
+    } else if(r < Sector::OUTTER_RANGE && r > Sector::MID_RANGE && sectors[idx].sub_index == 2) {
+        type = sectors[idx].type;
+    }
+//
+//    std::cout<<"x="<<x<<" y="<<y<<"\n";
+//    std::cout<<"idx="<<idx<<" r="<<r<<" deg="<<degrees<<" type="<<(int)type<<std::endl;
+
+    return type;
 }

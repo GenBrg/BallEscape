@@ -10,6 +10,10 @@
 
 
 struct Sector {
+    constexpr static double INNER_RANGE = 0.72233f;
+    constexpr static double MID_RANGE = 1.3447f;
+    constexpr static double OUTTER_RANGE = 1.9206f;
+
     enum class SecType : uint8_t {
         NORMAL = 0,
         RED,
