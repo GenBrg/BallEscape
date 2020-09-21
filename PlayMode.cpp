@@ -46,12 +46,10 @@ PlayMode::PlayMode() : scene(*ball_escape_scene) {
 
 	// Add sectors
 	Scene::Transform *transform = new Scene::Transform();
-	transform->parent = &(*(scene.transforms.begin()));
-	transform->position.y --;
 
 	scene.drawables.emplace_back(transform);
 	auto& drawable = scene.drawables.back();
-
+	drawable.pipeline = lit_color_texture_program_pipeline;
 	Sector sector(&drawable);
 	sector.set_type(Sector::Type::RED, 2);
 
