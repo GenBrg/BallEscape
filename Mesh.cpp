@@ -76,6 +76,7 @@ MeshBuffer::MeshBuffer(std::string const &filename) {
 				mesh.min = glm::min(mesh.min, data[v].Position);
 				mesh.max = glm::max(mesh.max, data[v].Position);
 			}
+			mesh.mesh_buffer = this;
 			bool inserted = meshes.insert(std::make_pair(name, mesh)).second;
 			if (!inserted) {
 				std::cerr << "WARNING: mesh name '" + name + "' in filename '" + filename + "' collides with existing mesh." << std::endl;
@@ -108,7 +109,7 @@ const Mesh &MeshBuffer::lookup(std::string const &name) const {
 
 GLuint MeshBuffer::make_vao_for_program(GLuint program) const {
 	//create a new vertex array object:
-	GLuint vao = 0;
+	vao = 0;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
@@ -144,6 +145,14 @@ GLuint MeshBuffer::make_vao_for_program(GLuint program) const {
 		if (!bound.count(GLuint(location))) {
 			throw std::runtime_error("ERROR: active attribute '" + std::string(name) + "' in program is not bound.");
 		}
+	}
+
+	return vao;
+}
+
+GLuint MeshBuffer::get_vao() const {
+	if (vao == 0) {
+		vao = make_vao_for_program();
 	}
 
 	return vao;

@@ -22,6 +22,7 @@ struct Mesh {
 	GLenum type = GL_TRIANGLES; //type of primitives in mesh
 	GLuint start = 0; //index of first vertex
 	GLuint count = 0; //count of vertices
+	MeshBuffer* mesh_buffer = nullptr;
 
 	//Bounding box.
 	//useful for debug visualization and (perhaps, eventually) collision detection:
@@ -67,4 +68,8 @@ struct MeshBuffer {
 	Attrib Normal;
 	Attrib Color;
 	Attrib TexCoord;
+
+	GLuint vao = 0;
+
+	GLuint get_vao() const;
 };

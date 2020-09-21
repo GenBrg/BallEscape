@@ -111,8 +111,8 @@ int main(int argc, char **argv) {
 				if (!buffer_vao) return;
 				Mesh const &mesh = buffer->lookup(mesh_name);
 
-				scene.drawables.emplace_back(transform);
-				Scene::Drawable &drawable = scene.drawables.back();
+				scene.background_drawables.emplace_back(transform);
+				Scene::Drawable &drawable = scene.background_drawables.back();
 
 				drawable.pipeline = show_scene_program_pipeline;
 

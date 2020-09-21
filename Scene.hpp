@@ -11,6 +11,7 @@
  */
 
 #include "GL.hpp"
+#include "Mesh.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -52,19 +53,12 @@ struct Scene {
 	struct Drawable {
 		//a 'Drawable' attaches attribute data to a transform:
 		Drawable(Transform *transform_) : transform(transform_) { assert(transform); }
-		Transform * transform;
+		Transform* transform;
+		Mesh* mesh;
 
 		//Contains all the data needed to run the OpenGL pipeline:
 		struct Pipeline {
 			GLuint program = 0; //shader program; passed to glUseProgram
-
-			//attributes:
-			GLuint vao = 0; //attrib->buffer mapping; passed to glBindVertexArray
-
-			GLenum type = GL_TRIANGLES; //what sort of primitive to draw; passed to glDrawArrays
-			GLuint start = 0; //first vertex to draw; passed to glDrawArrays
-			GLuint count = 0; //number of vertices to draw; passed to glDrawArrays
-
 			//uniforms:
 			GLuint OBJECT_TO_CLIP_mat4 = -1U; //uniform location for object to clip space matrix
 			GLuint OBJECT_TO_LIGHT_mat4x3 = -1U; //uniform location for object to light space (== world space) matrix
@@ -79,6 +73,8 @@ struct Scene {
 				GLenum target = GL_TEXTURE_2D;
 			} textures[TextureCount];
 		} pipeline;
+
+		void draw();
 	};
 
 	struct Camera {
@@ -118,7 +114,8 @@ struct Scene {
 
 	//Scenes, of course, may have many of the above objects:
 	std::list< Transform > transforms;
-	std::list< Drawable > drawables;
+	std::list< Drawable > background_drawables;
+	std::list< Drawable > foreground_drawables;
 	std::list< Camera > cameras;
 	std::list< Light > lights;
 
