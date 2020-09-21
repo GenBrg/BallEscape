@@ -55,6 +55,14 @@ PlayMode::PlayMode() : scene(*ball_escape_scene) {
 //	Sector sector(&drawable);
 //	sector.set_type(Sector::Type::RED, 2);
 
+	auto *transform = new Scene::Transform();
+
+	transform->position[0] = 1;
+	scene.drawables.emplace_back(transform);
+	auto& drawable = scene.drawables.back();
+	drawable.pipeline = lit_color_texture_program_pipeline;
+	drawable.mesh = &(ball_escape_meshes->lookup("Ball"));
+
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) {
         throw std::runtime_error("Expecting scene to have exactly one camera, but it has "
@@ -189,7 +197,7 @@ void PlayMode::update(float elapsed) {
         if(platforms.size() >= 1) {
             init_height = platforms.back().height - platform_interval;
         }
-        platforms.emplace_back(1 + random() % 4, random() % 5, init_height);
+        platforms.emplace_back(1 + rand() % 4, rand() % 5, init_height);
     }
 
 }

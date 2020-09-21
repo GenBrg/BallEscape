@@ -4,7 +4,6 @@
 
 #include <vector>
 #include "Sector.hpp"
-#include <random>
 
 #ifndef INC_15_466_F20_BASE1_PLATFORM_H
 #define INC_15_466_F20_BASE1_PLATFORM_H
