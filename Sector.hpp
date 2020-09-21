@@ -6,13 +6,12 @@ struct Sector {
         NORMAL = 0,
         RED,
         HOLE
-    } type;
-    uint8_t red_position;
-    Scene::Transform transform;
+    };
 
-    Sector(Type type_, int red_position_ = 0) :
-        type(type_), red_position(red_position_) {}
+    Scene::Drawable* drawable;
 
+    Sector(Scene::Drawable* drawable_) : drawable(drawable_) {}
+    void set_type(Type type_, int sub_index);
     void draw(Scene* scene);
 };
 

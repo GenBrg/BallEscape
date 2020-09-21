@@ -79,29 +79,24 @@ glm::mat4 Scene::Camera::make_projection() const {
 
 //-------------------------
 
-void Scene::draw(Camera const &camera) const {
+void Scene::draw(Camera const &camera) {
 	assert(camera.transform);
 	glm::mat4 world_to_clip = camera.make_projection() * glm::mat4(camera.transform->make_world_to_local());
 	glm::mat4x3 world_to_light = glm::mat4x3(1.0f);
 	draw(world_to_clip, world_to_light);
 }
 
-void Scene::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_light) const {
+void Scene::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_light) {
 
 	//Iterate through all drawables, sending each one to OpenGL:
-	for (auto const &drawable : background_drawables) {
-		drawable.draw();
-	}
-
-	for (auto const &drawable : foreground_drawables) {
-		drawable.draw();
+	for (auto const &drawable : drawables) {
+		drawable.draw(world_to_clip, world_to_light);
 	}
 
 	glUseProgram(0);
 	glBindVertexArray(0);
 
 	GL_ERRORS();
-	foreground_drawables.clear();
 }
 
 
@@ -155,7 +150,7 @@ void Scene::load(std::string const &filename,
 	static_assert(sizeof(LightEntry) == 4 + 1 + 3 + 4 + 4 + 4, "LightEntry is packed.");
 	std::vector< LightEntry > lights;
 	read_chunk(file, "lmp0", &lights);
-
+	
 
 	//--------------------------------
 	//Now that file is loaded, create transforms for hierarchy entries:
@@ -186,7 +181,7 @@ void Scene::load(std::string const &filename,
 		hierarchy_transforms.emplace_back(t);
 	}
 	assert(hierarchy_transforms.size() == hierarchy.size());
-
+	
 	for (auto const &m : meshes) {
 		if (m.transform >= hierarchy_transforms.size()) {
 			throw std::runtime_error("scene file '" + filename + "' contains mesh entry with invalid transform index (" + std::to_string(m.transform) + ")");
@@ -195,13 +190,13 @@ void Scene::load(std::string const &filename,
 			throw std::runtime_error("scene file '" + filename + "' contains mesh entry with invalid name indices");
 		}
 		std::string name = std::string(names.begin() + m.name_begin, names.begin() + m.name_end);
-
+		
 		if (on_drawable) {
 			on_drawable(*this, hierarchy_transforms[m.transform], name);
 		}
 
 	}
-
+	
 	for (auto const &c : cameras) {
 		if (c.transform >= hierarchy_transforms.size()) {
 			throw std::runtime_error("scene file '" + filename + "' contains camera entry with invalid transform index (" + std::to_string(c.transform) + ")");
@@ -239,7 +234,7 @@ void Scene::load(std::string const &filename,
 		light->energy = glm::vec3(l.color) / 255.0f * l.energy;
 		light->spot_fov = l.fov / 180.0f * 3.1415926f; //FOV is stored in degrees; convert to radians.
 	}
-
+	
 	//load any extra that a subclass wants:
 	load_extra(file, names, hierarchy_transforms);
 
@@ -297,9 +292,8 @@ void Scene::set(Scene const &other, std::unordered_map< Transform const *, Trans
 	}
 
 	//copy other's drawables, updating transform pointers:
-	background_drawables = other.background_drawables;
-	foreground_drawables = other.foreground_drawables;
-	for (auto &d : background_drawables) {
+	drawables = other.drawables;
+	for (auto &d : drawables) {
 		d.transform = transform_to_transform.at(d.transform);
 	}
 
@@ -316,19 +310,19 @@ void Scene::set(Scene const &other, std::unordered_map< Transform const *, Trans
 	}
 }
 
-void Scene::Drawable::draw() {
+void Scene::Drawable::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_light) const {
 	//skip any drawables without a shader program set:
-	if (pipeline.program == 0) continue;
+	if (pipeline.program == 0) return;
 	//skip any drawables that don't reference any vertex array:
-	if (mesh->mesh_buffer.vao == 0) continue;
+	if (mesh->mesh_buffer->vao == 0) return;
 	//skip any drawables that don't contain any vertices:
-	if (mesh->count == 0) continue;
+	if (mesh->count == 0) return;
 
 	//Set shader program:
 	glUseProgram(pipeline.program);
 
 	//Set attribute sources:
-	glBindVertexArray(mesh->mesh_buffer.vao);
+	glBindVertexArray(mesh->mesh_buffer->vao);
 
 	//Configure program uniforms:
 
@@ -368,7 +362,7 @@ void Scene::Drawable::draw() {
 	}
 
 	//draw the object:
-	glDrawArrays(pipeline.type, mesh->start, mesh->count);
+	glDrawArrays(mesh->type, mesh->start, mesh->count);
 
 	//un-bind textures:
 	for (uint32_t i = 0; i < Drawable::Pipeline::TextureCount; ++i) {

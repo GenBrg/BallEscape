@@ -1,7 +1,5 @@
 #include "PlayMode.hpp"
-
 #include "LitColorTextureProgram.hpp"
-
 #include "DrawLines.hpp"
 #include "Mesh.hpp"
 #include "Load.hpp"
@@ -11,88 +9,26 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <random>
-#include <vector>
 
-// GLuint hexapod_meshes_for_lit_color_texture_program = 0;
-// Load< MeshBuffer > hexapod_meshes(LoadTagDefault, []() -> MeshBuffer const * {
-// 	MeshBuffer const *ret = new MeshBuffer(data_path("hexapod.pnct"));
-// 	hexapod_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
-// 	return ret;
-// });
+Load< MeshBuffer > ball_escape_meshes(LoadTagDefault, []() -> MeshBuffer const * {
+	MeshBuffer *ret = new MeshBuffer(data_path("ball_escape.pnct"));
+	ret->make_vao_for_program(lit_color_texture_program->program);
+	return ret;
+});
 
-// Load< Scene > hexapod_scene(LoadTagDefault, []() -> Scene const * {
-// 	return new Scene(data_path("hexapod.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name){
-// 		Mesh const &mesh = hexapod_meshes->lookup(mesh_name);
-
-// 		scene.drawables.emplace_back(transform);
-// 		Scene::Drawable &drawable = scene.drawables.back();
-
-// 		drawable.pipeline = lit_color_texture_program_pipeline;
-
-// 		drawable.pipeline.vao = hexapod_meshes_for_lit_color_texture_program;
-// 		drawable.pipeline.type = mesh.type;
-// 		drawable.pipeline.start = mesh.start;
-// 		drawable.pipeline.count = mesh.count;
-// 	});
-// });
-
-enum MeshName {
-	SECTOR = 0,
-	DEATH_MACHINE,
-	BALL,
-	PILLAR,
-	ITEM
-}
-
-constexpr const char * const mesh_names[] {
-	"sector",
-	"death_machine",
-	"ball",
-	"pillar",
-	"item"
-};
-
-std::vector<Load<MeshBuffer>> meshes;
-
-void add_mesh(const std::string& mesh_name) {
-	meshes.emplace_back(
-		LoadTagDefault,
-		[&]() -> const MeshBuffer * {
-			const MeshBuffer* ret = new MeshBuffer(data_path(mesh_name + ".pcnt"));
-			ret->make_vao_for_program(lit_color_texture_program->program);
-			return ret;
-		}
-	);
-}
-
-Load<Scene> ball_escape_scene(LoadTagDefault, []() -> const Scene* {
+Load< Scene > ball_escape_scene(LoadTagDefault, []() -> Scene const * {
 	return new Scene(data_path("ball_escape.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name){
-		const Mesh* pmesh = nullptr;
-		for (const auto& m : meshes) {
-			try {
-				pmesh = &m->lookup(mesh_name);
-			} catch (std::runtime_error& e) {
-				pmesh = nullptr;
-			}
-			if (pmesh)
-				break;
-		}
+		Mesh const &mesh = ball_escape_meshes->lookup(mesh_name);
 
-		if (!pmesh) {
-			throw std::runtime_error("Looking up mesh '" + mesh_name + "' that doesn't exist.");
-		}
+		scene.drawables.emplace_back(transform);
+		Scene::Drawable &drawable = scene.drawables.back();
 
-		Mesh const &mesh = *pmesh;
-
-		scene.background_drawables.emplace_back(transform);
-		Scene::Drawable &drawable = scene.background_drawables.back();
 		drawable.pipeline = lit_color_texture_program_pipeline;
-		drawable.mesh = pmesh;
+		drawable.mesh = &mesh;
 	});
 });
 
-PlayMode::PlayMode() : scene() {
-	scene.cameras.emplace_back();
+PlayMode::PlayMode() : scene(*ball_escape_scene) {
 // 	//get pointers to leg for convenience:
 // 	for (auto &transform : scene.transforms) {
 // 		if (transform.name == "Hip.FL") hip = &transform;
@@ -107,10 +43,10 @@ PlayMode::PlayMode() : scene() {
 // 	upper_leg_base_rotation = upper_leg->rotation;
 // 	lower_leg_base_rotation = lower_leg->rotation;
 
-// 	//get pointer to camera for convenience:
-// 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
-// 	camera = &scene.cameras.front();
-// }
+	//get pointer to camera for convenience:
+	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
+	camera = &scene.cameras.front();
+}
 
 PlayMode::~PlayMode() {
 }
@@ -177,22 +113,22 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed) {
 
-	//slowly rotates through [0,1):
-	wobble += elapsed / 10.0f;
-	wobble -= std::floor(wobble);
+	// //slowly rotates through [0,1):
+	// wobble += elapsed / 10.0f;
+	// wobble -= std::floor(wobble);
 
-	hip->rotation = hip_base_rotation * glm::angleAxis(
-		glm::radians(5.0f * std::sin(wobble * 2.0f * float(M_PI))),
-		glm::vec3(0.0f, 1.0f, 0.0f)
-	);
-	upper_leg->rotation = upper_leg_base_rotation * glm::angleAxis(
-		glm::radians(7.0f * std::sin(wobble * 2.0f * 2.0f * float(M_PI))),
-		glm::vec3(0.0f, 0.0f, 1.0f)
-	);
-	lower_leg->rotation = lower_leg_base_rotation * glm::angleAxis(
-		glm::radians(10.0f * std::sin(wobble * 3.0f * 2.0f * float(M_PI))),
-		glm::vec3(0.0f, 0.0f, 1.0f)
-	);
+	// hip->rotation = hip_base_rotation * glm::angleAxis(
+	// 	glm::radians(5.0f * std::sin(wobble * 2.0f * float(M_PI))),
+	// 	glm::vec3(0.0f, 1.0f, 0.0f)
+	// );
+	// upper_leg->rotation = upper_leg_base_rotation * glm::angleAxis(
+	// 	glm::radians(7.0f * std::sin(wobble * 2.0f * 2.0f * float(M_PI))),
+	// 	glm::vec3(0.0f, 0.0f, 1.0f)
+	// );
+	// lower_leg->rotation = lower_leg_base_rotation * glm::angleAxis(
+	// 	glm::radians(10.0f * std::sin(wobble * 3.0f * 2.0f * float(M_PI))),
+	// 	glm::vec3(0.0f, 0.0f, 1.0f)
+	// );
 
 	//move camera:
 	{
@@ -245,9 +181,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS); //this is the default depth comparison function, but FYI you can change it.
 
-
 	scene.draw(*camera);
-	
 
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);

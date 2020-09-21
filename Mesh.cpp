@@ -107,7 +107,7 @@ const Mesh &MeshBuffer::lookup(std::string const &name) const {
 	return f->second;
 }
 
-GLuint MeshBuffer::make_vao_for_program(GLuint program) const {
+GLuint MeshBuffer::make_vao_for_program(GLuint program) {
 	//create a new vertex array object:
 	vao = 0;
 	glGenVertexArrays(1, &vao);
@@ -145,14 +145,6 @@ GLuint MeshBuffer::make_vao_for_program(GLuint program) const {
 		if (!bound.count(GLuint(location))) {
 			throw std::runtime_error("ERROR: active attribute '" + std::string(name) + "' in program is not bound.");
 		}
-	}
-
-	return vao;
-}
-
-GLuint MeshBuffer::get_vao() const {
-	if (vao == 0) {
-		vao = make_vao_for_program();
 	}
 
 	return vao;

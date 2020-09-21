@@ -90,10 +90,7 @@ int main(int argc, char **argv) {
 	//SDL_ShowCursor(SDL_DISABLE);
 
 	//------------ load assets --------------
-	for (const auto& mesh_name : mesh_names) {
-		add_mesh(mesh_name);
-	}
-
+	
 	call_load_functions();
 
 	//------------ create game mode + make current --------------

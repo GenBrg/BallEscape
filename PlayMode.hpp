@@ -1,5 +1,4 @@
 #include "Mode.hpp"
-
 #include "Scene.hpp"
 
 #include <glm/glm.hpp>
