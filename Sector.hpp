@@ -11,8 +11,7 @@ struct Sector {
     Scene::Drawable* drawable;
 
     Sector(Scene::Drawable* drawable_) : drawable(drawable_) {}
-    void set_type(Type type_, int sub_index);
-    void draw(Scene* scene);
+    void set_type(Type type, int sub_index);
 };
 
 

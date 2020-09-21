@@ -5,6 +5,7 @@
 #include "Load.hpp"
 #include "gl_errors.hpp"
 #include "data_path.hpp"
+#include "Sector.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -42,6 +43,17 @@ PlayMode::PlayMode() : scene(*ball_escape_scene) {
 // 	hip_base_rotation = hip->rotation;
 // 	upper_leg_base_rotation = upper_leg->rotation;
 // 	lower_leg_base_rotation = lower_leg->rotation;
+
+	// Add sectors
+	Scene::Transform *transform = new Scene::Transform();
+	transform->parent = &(*(scene.transforms.begin()));
+	transform->position.y --;
+
+	scene.drawables.emplace_back(transform);
+	auto& drawable = scene.drawables.back();
+
+	Sector sector(&drawable);
+	sector.set_type(Sector::Type::RED, 2);
 
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
