@@ -149,7 +149,7 @@ for obj in bpy.data.objects:
 	else:
 		colors = obj.data.vertex_colors.active.data
 		if len(obj.data.vertex_colors) != 1:
-			print("WARNING: object '" + name + "' has multiple vertex color layers; only exporting '" + colors.name + "'")
+			print("WARNING: object '" + name + "' has multiple vertex color layers; only exporting '" + obj.data.vertex_colors.active.name + "'")
 
 	uvs = None
 	if len(obj.data.uv_layers) == 0:
@@ -157,7 +157,7 @@ for obj in bpy.data.objects:
 	else:
 		uvs = obj.data.uv_layers.active.data
 		if len(obj.data.uv_layers) != 1:
-			print("WARNING: object '" + name + "' has multiple texture coordinate layers; only exporting '" + uvs.name + "'")
+			print("WARNING: object '" + name + "' has multiple texture coordinate layers; only exporting '" + obj.data.uv_layers.active.name + "'")
 
 	local_data = b''
 
