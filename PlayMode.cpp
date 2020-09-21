@@ -207,8 +207,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	GL_ERRORS();
 	glUseProgram(0);
 
-//    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.28f, 0.15f, 0.07f, 1.0f);
 //	glClearDepth(1.0f); //1.0 is actually the default value to clear the depth buffer to, but FYI you can change it.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
