@@ -228,6 +228,7 @@ void Scene::load(std::string const &filename,
 			std::cout << "Ignoring unrecognized lamp type (" + std::string(&l.type, 1) + ") stored in file." << std::endl;
 			continue;
 		}
+		std::cout << l.energy << " " << l.type << std::endl;
 		this->lights.emplace_back(hierarchy_transforms[l.transform]);
 		Light *light = &this->lights.back();
 		light->type = static_cast<Light::Type>(l.type);
