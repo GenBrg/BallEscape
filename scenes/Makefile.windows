@@ -1,0 +1,13 @@
+
+BLENDER="D:\blender-2.90.0-windows64\blender.exe"
+DIST=../dist
+
+all : \
+    $(DIST)/ball_escape.pnct \
+    $(DIST)/ball_escape.scene \
+
+$(DIST)/ball_escape.scene : BallEscape.blend export-scene.py
+    $(BLENDER) --background --python export-scene.py -- "BallEscape.blend:Scene" "$(DIST)/ball_escape.scene"
+
+$(DIST)/ball_escape.pnct : BallEscape.blend export-meshes.py
+    $(BLENDER) --background --python export-meshes.py -- "BallEscape.blend" "$(DIST)/ball_escape.pnct" 
