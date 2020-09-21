@@ -91,6 +91,7 @@ COMMON_NAMES =
 	GL
 	Load
 	Sector
+	Platform
 	;
 
 

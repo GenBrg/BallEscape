@@ -16,3 +16,10 @@ Sources: (TODO: list a source URL for any assets you did not create yourself. Ma
 
 This game was built with [NEST](NEST.md).
 
+
+# Resources
+Heart:
+https://www.turbosquid.com/3d-models/obj-love-heart/1050666 License: https://blog.turbosquid.com/turbosquid-3d-model-license/
+
+Coin:
+https://www.cgtrader.com/free-3d-print-models/hobby-diy/hand-tools/3d-printable-5-coins-batman-ottoman-pokemon-mario-x2 (License: https://www.cgtrader.com/pages/terms-and-conditions#royalty-free-license)
