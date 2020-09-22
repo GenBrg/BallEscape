@@ -196,14 +196,17 @@ void PlayMode::update(float elapsed) {
     }
 
 	// ball-item collision
-	Platform& ball_platform = *(ball.platform_p);
-	for (auto it = ball_platform.items.begin(); it != ball_platform.items.end(); ++it) {
-		if ((*it).IsCollision(ball.transform->position, ball.RADIUS)) {
-			(*it).ApplyEffect(*this);
-			ball_platform.items.erase(it);
-			break;
+	Platform* ball_platform = ball.platform_p;
+	if (ball_platform) {
+		for (auto it = ball_platform->items.begin(); it != ball_platform->items.end(); ++it) {
+			if ((*it).IsCollision(ball.transform->position, ball.RADIUS)) {
+				(*it).ApplyEffect(*this);
+				ball_platform->items.erase(it);
+				break;
+			}
 		}
 	}
+	
 
     while(platforms.size() < platform_cnt) {
         //make sure there are platform_cnt platforms all the time
