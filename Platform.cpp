@@ -15,6 +15,8 @@ Platform::Platform(int hole_cnt, int red_cnt, double height_): height(height_), 
     int red_left = red_cnt;
     int normal_left = SECS_PER_PLATFORM - hole_cnt - red_cnt;
 
+    int items_left = 5;
+
     for(int i=0; i<SECS_PER_PLATFORM; i++) {
         int rand_val = rand() % (hole_left + red_left + normal_left);
         Sector::SecType secType;
@@ -27,8 +29,22 @@ Platform::Platform(int hole_cnt, int red_cnt, double height_): height(height_), 
         } else {
             secType = Sector::SecType::NORMAL;
             normal_left--;
+            if (items_left > 0) {
+                // 30% chance spawn an item
+                if ((rand() % 10) > 6) {
+                    int subsec_idx = rand() % 3;
+                    if (rand() % 10 > 0) {
+                        // 90% chance spawn a coin
+                        items.emplace_back(Item::Type::COIN, this, i, subsec_idx);
+                    } else {
+                        // 10% chance spawn a coin
+                        items.emplace_back(Item::Type::HEART, this, i, subsec_idx);
+                    }
+                    --items_left;
+                }
+            }    
         }
-
+        
         Sector sec = Sector(secType,secType == Sector::SecType::HOLE ? 1 + rand() % 2 : rand() % 3);
         sectors.push_back(sec);
 //        std::cout<<"idx = "<<i<<" type="<<(int)sec.type<<" sub_idx="<<sec.sub_index<<std::endl;

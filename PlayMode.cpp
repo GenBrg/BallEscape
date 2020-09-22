@@ -8,6 +8,7 @@
 #include "Sector.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <random>
 
@@ -31,26 +32,15 @@ Load< Scene > ball_escape_scene(LoadTagDefault, []() -> Scene const * {
 });
 
 PlayMode::PlayMode() : scene(*ball_escape_scene) {
-// 	//get pointers to leg for convenience:
-// 	for (auto &transform : scene.transforms) {
-// 		if (transform.name == "Hip.FL") hip = &transform;
-// 		else if (transform.name == "UpperLeg.FL") upper_leg = &transform;
-// 		else if (transform.name == "LowerLeg.FL") lower_leg = &transform;
-// 	}
-// 	if (hip == nullptr) throw std::runtime_error("Hip not found.");
-// 	if (upper_leg == nullptr) throw std::runtime_error("Upper leg not found.");
-// 	if (lower_leg == nullptr) throw std::runtime_error("Lower leg not found.");
-
-// 	hip_base_rotation = hip->rotation;
-// 	upper_leg_base_rotation = upper_leg->rotation;
-// 	lower_leg_base_rotation = lower_leg->rotation;
-
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) {
         throw std::runtime_error("Expecting scene to have exactly one camera, but it has "
         + std::to_string(scene.cameras.size()));
 	}
 	camera = &scene.cameras.front();
+	// glm::mat3 camera_rotation_mat = glm::mat3_cast(camera->transform->rotation);
+	// glm::vec3 camera_up(camera_rotation_mat[0][2], camera_rotation_mat[1][2], camera_rotation_mat[2][2]);
+	// camera->transform->rotation = glm::quat_cast(glm::lookAt(camera->transform->position, glm::vec3(0.0f, 0.0f, 0.0f), camera_up));
 
 	// put ball
     scene.drawables.emplace_back(ball.transform);
@@ -169,27 +159,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 }
 
 void PlayMode::update(float elapsed) {
-
-	// //slowly rotates through [0,1):
-	// wobble += elapsed / 10.0f;
-	// wobble -= std::floor(wobble);
-
-	// hip->rotation = hip_base_rotation * glm::angleAxis(
-	// 	glm::radians(5.0f * std::sin(wobble * 2.0f * float(M_PI))),
-	// 	glm::vec3(0.0f, 1.0f, 0.0f)
-	// );
-	// upper_leg->rotation = upper_leg_base_rotation * glm::angleAxis(
-	// 	glm::radians(7.0f * std::sin(wobble * 2.0f * 2.0f * float(M_PI))),
-	// 	glm::vec3(0.0f, 0.0f, 1.0f)
-	// );
-	// lower_leg->rotation = lower_leg_base_rotation * glm::angleAxis(
-	// 	glm::radians(10.0f * std::sin(wobble * 3.0f * 2.0f * float(M_PI))),
-	// 	glm::vec3(0.0f, 0.0f, 1.0f)
-	// );
-
 	//move camera:
 	{
-
 		//combine inputs into a move:
 		constexpr float PlayerSpeed = 30.0f;
 		glm::vec2 move = glm::vec2(0.0f);
@@ -218,7 +189,21 @@ void PlayMode::update(float elapsed) {
 	// update platform
 	for(auto& platform: platforms) {
         platform.height += elapsed * platform_up_speed;
+
+		for (auto& item : platform.items) {
+			item.Animate(elapsed);
+		}
     }
+
+	// ball-item collision
+	Platform& ball_platform = *(ball.platform_p);
+	for (auto it = ball_platform.items.begin(); it != ball_platform.items.end(); ++it) {
+		if ((*it).IsCollision(ball.transform->position, ball.RADIUS)) {
+			(*it).ApplyEffect(*this);
+			ball_platform.items.erase(it);
+			break;
+		}
+	}
 
 //    while(!platforms.empty() && platforms.front().height > platform_max_height) {
 //        //todo while (... or ball already pass this platform)
@@ -315,6 +300,11 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
                 drawable.mesh = &(ball_escape_meshes->lookup(platform.sectors[i].get_mesh_name()));
                 temp_sec_transforms.push_back(transform_p);
             }
+
+			// Add items
+			for (auto& item : platform.items) {
+				item.Draw(scene);
+			}
         }
     }
 

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include "Sector.hpp"
+#include "Item.hpp"
 
 #ifndef INC_15_466_F20_BASE1_PLATFORM_H
 #define INC_15_466_F20_BASE1_PLATFORM_H
@@ -22,6 +23,8 @@ struct Platform {
 
     // a vector of sectors (fix length 18)
     std::vector<Sector> sectors;
+
+    std::vector<Item> items;
 
     // current height of this platform
     double height;

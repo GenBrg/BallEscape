@@ -92,6 +92,7 @@ COMMON_NAMES =
 	GL
 	Load
 	Platform
+	Item
 	;
 
 
