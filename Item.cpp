@@ -10,10 +10,8 @@ Item::Item(Type type, Platform* platform, int sector_index, int sub_index) :
     platform_(platform),
     existing_time_(0.0f),
     base_rotation_(glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f))),
-    type_(type),
-    sector_index_(sector_index),
-    sub_index_(sub_index),
-    rotation_(0.0f)
+    rotation_(0.0f), 
+    type_(type)
  {
     translation_transform_ = new Scene::Transform();
     rotation_transform_ = new Scene::Transform();
@@ -36,8 +34,8 @@ Item::Item(Type type, Platform* platform, int sector_index, int sub_index) :
     rotation_transform_->parent = translation_transform_;
     float rou = subsection_dist[sub_index];
     float degree = glm::radians(10.0f + sector_index * 20.0f);
-    translation_transform_->position[0] = rou * glm::cos(rou);
-    translation_transform_->position[1] = rou * glm::sin(rou);
+    translation_transform_->position[0] = rou * glm::cos(degree);
+    translation_transform_->position[1] = rou * glm::sin(degree);
     
     Animate(0.0f);
 }

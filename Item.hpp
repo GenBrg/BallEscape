@@ -12,9 +12,6 @@ private:
     Scene::Transform* rotation_transform_ = nullptr;
     float existing_time_;
 
-    int sector_index_;
-    int sub_index_;
-
     float base_relative_height_;
     glm::quat base_rotation_;;
     float rotation_speed_;
