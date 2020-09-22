@@ -262,19 +262,30 @@ void PlayMode::update(float elapsed) {
             ball.is_falling = false;
             ball.time_since_fall = 0.0f;
             ball.platform_p = &platforms.front();
+            invincible_left = invincible_time;
         }
     }
 
 
     // check if ball fall to next round
-    if(ball.enter_hole()) {
+    if(ball.enter_hole() || platforms.front().height >= platform_max_height) {
         // start deconstruct this level
         deconstructing_platforms.push_back(*(ball.platform_p));
         platforms.pop_front();
-        // todo make it a horizontal projectile motion
-//        ball.platform_p = &platforms.front();
         ball.platform_p = nullptr;
         ball.is_falling = true;
+
+        if (platforms.front().height >= platform_max_height && invincible_left <= 0.01) {
+            player_life--;
+        }
+    }
+
+
+    if(ball.enter_red() && invincible_left <= 0.001) {
+        player_life--;
+        invincible_left = invincible_time;
+    } else {
+        invincible_left = fmax(0.0f, invincible_left - elapsed);
     }
 
     // traverse all platform in deconstructing update its time

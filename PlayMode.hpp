@@ -60,6 +60,9 @@ struct PlayMode : Mode {
 
 	const double platform_max_height = 3.0f;
 
+    const double invincible_time = 3.0f;
+    double invincible_left = 0.0;
+
 	//
 	Ball ball;
 	float ball_init_vel_per_hit = 0.6f; // init speed
