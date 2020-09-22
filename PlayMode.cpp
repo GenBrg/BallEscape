@@ -266,6 +266,7 @@ void PlayMode::update(float elapsed) {
             ball.time_since_fall = 0.0f;
             ball.platform_p = &platforms.front();
             invincible_left = invincible_time;
+            total_score += 3;
         }
     }
 
