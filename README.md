@@ -29,3 +29,6 @@ https://www.turbosquid.com/3d-models/obj-love-heart/1050666 License: https://blo
 
 Coin:
 https://www.cgtrader.com/free-3d-print-models/hobby-diy/hand-tools/3d-printable-5-coins-batman-ottoman-pokemon-mario-x2 (License: https://www.cgtrader.com/pages/terms-and-conditions#royalty-free-license)
+
+Skull:
+https://www.cgtrader.com/free-3d-models/character/fantasy/cartoon-skull--2  (License: https://www.cgtrader.com/pages/terms-and-conditions#royalty-free-license)

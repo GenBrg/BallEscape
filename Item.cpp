@@ -23,13 +23,20 @@ Item::Item(Type type, Platform* platform, int sector_index, int sub_index) :
         floating_amplitude_ = 0.1f;
         collision_radius_ = 0.15f;
         mesh_name_ = "Coin";
-    } else {
-        base_relative_height_ = 0.7f;
+    } else if(type == Type::HEART) {
+        base_relative_height_ = 0.5f;
         rotation_speed_ = 90.0f;
         floating_speed_ = glm::radians(90.0f);
         floating_amplitude_ = 0.15f;
-        collision_radius_ = 0.5f;
+        collision_radius_ = 0.15f;
         mesh_name_ = "Heart";
+    } else {
+         base_relative_height_ = 0.5f;
+         rotation_speed_ = 90.0f;
+         floating_speed_ = glm::radians(90.0f);
+         floating_amplitude_ = 0.15f;
+         collision_radius_ = 0.15f;
+         mesh_name_ = "Skull";
     }
     
     rotation_transform_->parent = translation_transform_;
@@ -66,8 +73,10 @@ void Item::ApplyEffect(PlayMode& playmode)
 {
     if (type_ == Type::COIN) {
         playmode.total_score += 3;
-    } else {
+    } else if (type_ == Type::HEART) {
         ++playmode.player_life;
+    } else {
+        --playmode.player_life;
     }
 }
 

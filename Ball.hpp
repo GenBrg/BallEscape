@@ -20,6 +20,8 @@ struct Ball {
     //which platform holds the ball
     Platform *platform_p;
 
+    Scene::Drawable* drawable_p;
+
 
     Ball() {
         transform = new Scene::Transform();
@@ -71,8 +73,8 @@ public:
         double dist = sqrt(pow(transform->position[1], 2) + pow(transform->position[0], 2));
 
         if (dist < Platform::CENTRAL_COLUMN_RADIUS + Ball::RADIUS || dist > Platform::INNER_RADIUS - Ball::RADIUS) {
-            std::cout<<"x="<<transform->position[0]<<" y="<<transform->position[1]<<"\n";
-            std::cout<<"dist="<<dist<<" out="<<Platform::INNER_RADIUS - Ball::RADIUS<<" in="<<Platform::CENTRAL_COLUMN_RADIUS + Ball::RADIUS <<"\n";
+//            std::cout<<"x="<<transform->position[0]<<" y="<<transform->position[1]<<"\n";
+//            std::cout<<"dist="<<dist<<" out="<<Platform::INNER_RADIUS - Ball::RADIUS<<" in="<<Platform::CENTRAL_COLUMN_RADIUS + Ball::RADIUS <<"\n";
 
             // calculate reflect speed when hit the wall or hit the central column
             glm::vec2 norm = glm::normalize(glm::vec2(transform->position[0], transform->position[1]));
@@ -93,8 +95,8 @@ public:
                 transform->position[1] = correct_cor[1];
             }
 
-            std::cout<<"reflected fixed: ";
-            std::cout<<"x="<<transform->position[0]<<" y="<<transform->position[1]<<"\n";
+//            std::cout<<"reflected fixed: ";
+//            std::cout<<"x="<<transform->position[0]<<" y="<<transform->position[1]<<"\n";
 
         }
 
@@ -144,10 +146,6 @@ public:
 
     bool enter_hole() {
         return !is_falling && platform_p->get_sec_type(transform->position[0], transform->position[1]) == Sector::SecType::HOLE;
-    }
-
-    bool enter_red() {
-        return !is_falling && platform_p->get_sec_type(transform->position[0], transform->position[1]) == Sector::SecType::RED;
     }
 
     void reset_speed() {

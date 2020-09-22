@@ -26,7 +26,8 @@ private:
 public:
     enum class Type : uint8_t {
         COIN,
-        HEART
+        HEART,
+        SKULL,
     } type_;
 
     Item(Type type, Platform* platform, int sector_index, int sub_index);
