@@ -258,7 +258,7 @@ void PlayMode::update(float elapsed) {
                 ball.transform->position[1] = 0;
                 ball.reset_speed();
             }
-        } else if(ball.transform->position[2] <= platforms.front().height) {
+        } else if(ball.transform->position[2] - (ball.time_since_fall * 9.8) * elapsed <= platforms.front().height) {
             ball.is_falling = false;
             ball.time_since_fall = 0.0f;
             ball.platform_p = &platforms.front();

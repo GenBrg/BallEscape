@@ -83,15 +83,18 @@ public:
             speed[1] = speed_norm[1] + speed_tangent[1] * COLLIDE_SPEED_RATIO;
 
             // make sure it is still within the range
-            // the ratio is the same but
-            // make sure it is still within the range
-            glm::vec2 correct_cor = (float(dist) * 0.99f) * glm::normalize(glm::vec2(transform->position[0], transform->position[1]));
-            transform->position[0] = correct_cor[0];
-            transform->position[1] = correct_cor[1];
+            if (dist > Platform::INNER_RADIUS - Ball::RADIUS) {
+                glm::vec2 correct_cor = (float(dist) * 0.99f) * glm::normalize(glm::vec2(transform->position[0], transform->position[1]));
+                transform->position[0] = correct_cor[0];
+                transform->position[1] = correct_cor[1];
+            } else {
+                glm::vec2 correct_cor = (float(dist) * 1.01f) * glm::normalize(glm::vec2(transform->position[0], transform->position[1]));
+                transform->position[0] = correct_cor[0];
+                transform->position[1] = correct_cor[1];
+            }
 
             std::cout<<"reflected fixed: ";
             std::cout<<"x="<<transform->position[0]<<" y="<<transform->position[1]<<"\n";
-
 
         }
 
