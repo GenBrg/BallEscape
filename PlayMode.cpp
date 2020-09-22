@@ -166,7 +166,6 @@ void PlayMode::update(float elapsed) {
 	//move camera:
 	{
 		//combine inputs into a move:
-		constexpr float PlayerSpeed = 30.0f;
 		float move = 0.0f;
 		if (left.pressed && !right.pressed) move = -glm::radians(90.0f) * elapsed;
 		if (!left.pressed && right.pressed) move = glm::radians(90.0f) * elapsed;
