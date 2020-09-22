@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <random>
+#include <sstream>
 
 Load< MeshBuffer > ball_escape_meshes(LoadTagDefault, []() -> MeshBuffer const * {
 	MeshBuffer *ret = new MeshBuffer(data_path("ball_escape.pnct"));
@@ -258,7 +259,7 @@ void PlayMode::update(float elapsed) {
                 ball.transform->position[1] = 0;
                 ball.reset_speed();
             }
-        } else if(ball.transform->position[2] - (ball.time_since_fall * 9.8) * elapsed <= platforms.front().height) {
+        } else if(ball.transform->position[2] <= platforms.front().height) {
             ball.is_falling = false;
             ball.time_since_fall = 0.0f;
             ball.platform_p = &platforms.front();
@@ -370,14 +371,28 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			0.0f, 0.0f, 0.0f, 1.0f
 		));
 
+		std::stringstream ss;
+		ss << "Score: " << total_score;
+
 		constexpr float H = 0.09f;
-		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
-			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
+		lines.draw_text(ss.str(),
+			glm::vec3(-aspect + 0.1f * H, 1.0 - 1.2f * H, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 		float ofs = 2.0f / drawable_size.y;
-		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
-			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
+		lines.draw_text(ss.str(),
+			glm::vec3(-aspect + 0.1f * H + ofs, 1.0 - 1.2f * H + ofs, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+
+		ss.str("");
+		ss << "Life: " << player_life;
+		lines.draw_text(ss.str(),
+			glm::vec3(aspect - 3.0f * H, 1.0 - 1.2f * H, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+		lines.draw_text(ss.str(),
+			glm::vec3(aspect - 3.0f * H + ofs, 1.0 - 1.2f * H + ofs, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 	}

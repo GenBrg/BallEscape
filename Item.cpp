@@ -1,6 +1,7 @@
 #include "Item.hpp"
 #include "Platform.hpp"
 #include "Load.hpp"
+#include "PlayMode.hpp"
 
 const float subsection_dist[] { 0.5f, 1.0f, 1.5f };
 extern Scene::Drawable::Pipeline lit_color_texture_program_pipeline;
@@ -64,9 +65,9 @@ bool Item::IsCollision(const glm::vec3& position, float radius)
 void Item::ApplyEffect(PlayMode& playmode) 
 {
     if (type_ == Type::COIN) {
-
+        playmode.total_score += 3;
     } else {
-
+        ++playmode.player_life;
     }
 }
 
