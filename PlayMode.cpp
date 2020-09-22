@@ -220,13 +220,6 @@ void PlayMode::update(float elapsed) {
         platform.height += elapsed * platform_up_speed;
     }
 
-//    while(!platforms.empty() && platforms.front().height > platform_max_height) {
-//        //todo while (... or ball already pass this platform)
-//        platforms.erase(platforms.begin());
-//    }
-
-
-
     while(platforms.size() < platform_cnt) {
         //make sure there are platform_cnt platforms all the time
         double init_height = platform_init_height;
@@ -260,22 +253,52 @@ void PlayMode::update(float elapsed) {
         }
     }
 
-    // let ball roll
+    // let ball roll or fall
     ball.roll(elapsed);
+
+    if(ball.is_falling) {
+        double dist = sqrt(pow(ball.transform->position[0], 2) + pow(ball.transform->position[1], 2));
+        if(dist > Platform::INNER_RADIUS) {
+            // gg, fall out of the range,
+            if(ball.time_since_fall > 2.0f) {
+                // lose one HP, replace the ball
+                player_life--;
+                ball.is_falling = false;
+                ball.time_since_fall = 0.0f;
+                ball.platform_p = &platforms.front();
+                ball.transform->position[0] = Platform::INNER_RADIUS / 2;
+                ball.transform->position[1] = 0;
+                ball.reset_speed();
+            }
+        } else if(ball.transform->position[2] <= platforms.front().height) {
+            ball.is_falling = false;
+            ball.time_since_fall = 0.0f;
+            ball.platform_p = &platforms.front();
+        }
+    }
+
 
     // check if ball fall to next round
     if(ball.enter_hole()) {
         // start deconstruct this level
-        ball.platform_p->start_deconstruct = true;
         deconstructing_platforms.push_back(*(ball.platform_p));
         platforms.pop_front();
-        ball.platform_p = &platforms.front();
+        // todo make it a horizontal projectile motion
+//        ball.platform_p = &platforms.front();
+        ball.platform_p = nullptr;
+        ball.is_falling = true;
     }
 
-//    // traverse all platform in deconstructing update its
-//    for(auto &p: deconstructing_platforms) {
-//
-//    }
+    // traverse all platform in deconstructing update its time
+    for(auto &p: deconstructing_platforms) {
+        p.time_since_deconstruct += elapsed;
+    }
+
+    //delete them after falling long enough
+    while(!deconstructing_platforms.empty() &&
+            deconstructing_platforms.front().time_since_deconstruct > deconstruct_last_sec) {
+        deconstructing_platforms.pop_front();
+    }
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
@@ -313,6 +336,18 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
                 auto &drawable = scene.drawables.back();
                 drawable.pipeline = lit_color_texture_program_pipeline;
                 drawable.mesh = &(ball_escape_meshes->lookup(platform.sectors[i].get_mesh_name()));
+                temp_sec_transforms.push_back(transform_p);
+            }
+        }
+
+        // push all deconstructing platforms
+        for(auto& p: deconstructing_platforms) {
+            for(size_t i=0; i < p.sectors.size(); i++) {
+                auto transform_p = p.get_deconstruct_transform(i);
+                scene.drawables.emplace_back(transform_p);
+                auto &drawable = scene.drawables.back();
+                drawable.pipeline = lit_color_texture_program_pipeline;
+                drawable.mesh = &(ball_escape_meshes->lookup(p.sectors[i].get_mesh_name()));
                 temp_sec_transforms.push_back(transform_p);
             }
         }

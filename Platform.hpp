@@ -18,7 +18,7 @@ struct Platform {
     constexpr static double CENTRAL_COLUMN_RADIUS = 0.204f;
 
     // deconstruct init speed
-    constexpr static double DECONST_SPEED = 1.0f;
+    constexpr static double DECONST_SPEED = 8.0f;
 
     // a vector of sectors (fix length 18)
     std::vector<Sector> sectors;
@@ -31,8 +31,6 @@ struct Platform {
     double rotate_degree;
 
     //
-    bool start_deconstruct = false;
-    bool finish_deconstruct = false;
     double time_since_deconstruct = 0.0f;
 
     /**
@@ -46,6 +44,8 @@ struct Platform {
      * Note: remember to delete
      */
     Scene::Transform* get_transform(size_t idx);
+
+    Scene::Transform* get_deconstruct_transform(size_t idx);
 
     /**
      * Get the type of board of a given position

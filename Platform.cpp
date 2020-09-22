@@ -6,7 +6,10 @@
 #include "Sector.hpp"
 
 #include <random>
+
+#ifndef M_PI
 #define M_PI 3.14159265358
+#endif
 
 static int SECS_PER_PLATFORM = 18;
 
@@ -49,6 +52,28 @@ Scene::Transform *Platform::get_transform(size_t idx) {
 
     return transform_p;
 }
+
+Scene::Transform *Platform::get_deconstruct_transform(size_t idx) {
+    Scene::Transform* transform_p = new Scene::Transform();
+
+    // polar coord to x-y coord
+    float deg_per_sec = 360.0f / SECS_PER_PLATFORM;
+    float degree = idx * deg_per_sec;
+    glm::vec2 direction = glm::vec2(sin(degree * M_PI / 180), cos(degree * M_PI / 180));
+    glm::vec2 speed = glm::normalize(direction) * (float)Platform::DECONST_SPEED;
+
+    transform_p->position[0] = -speed[0] * time_since_deconstruct;
+    transform_p->position[1] = speed[1] * time_since_deconstruct;
+    transform_p->position[2] = height - 0.5 * 9.8 * time_since_deconstruct * time_since_deconstruct;
+
+    // use angle axis to compute location of this sector
+    transform_p->rotation *= glm::angleAxis(
+            glm::radians((idx + 13.0f) * deg_per_sec + deg_per_sec/2),
+            glm::vec3(0.0f, 0.0f, 1.0f));
+
+    return transform_p;
+}
+
 
 Sector::SecType Platform::get_sec_type(double x, double y) {
     //convert to polar coordinates
