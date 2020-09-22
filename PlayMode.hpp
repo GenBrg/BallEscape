@@ -47,7 +47,8 @@ struct PlayMode : Mode {
 	// all platforms
 	std::deque<Platform> platforms;
 
-	std::vector<Platform> deconstructing_platforms;
+	const double deconstruct_last_sec = 5.0f;
+	std::deque<Platform> deconstructing_platforms;
 
 	// moving speed up
     double platform_up_speed = 0.6;
