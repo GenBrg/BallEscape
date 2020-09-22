@@ -35,9 +35,9 @@ public:
     bool IsCollision(const glm::vec3& position, float radius);
     void ApplyEffect(PlayMode& playmode);
     ~Item() {
-        if (translation_transform_)
-            delete translation_transform_;
-        if (rotation_transform_)
-            delete rotation_transform_;
+        // if (translation_transform_)
+        //     delete translation_transform_;
+        // if (rotation_transform_)
+        //     delete rotation_transform_;
     }
 };
