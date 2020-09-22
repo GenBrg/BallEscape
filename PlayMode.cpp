@@ -50,11 +50,13 @@ PlayMode::PlayMode() : scene(*ball_escape_scene) {
     drawable.pipeline = lit_color_texture_program_pipeline;
     drawable.mesh = &(ball_escape_meshes->lookup("Ball"));
 
+
     // init a first platform to hold ball
     platforms.emplace_back(1 + rand() % 4, rand() % 5, platform_init_height);
     ball.platform_p = &platforms.back();
     ball.transform->position[0] = Platform::INNER_RADIUS / 2;
     ball.transform->position[1] = 0;
+    ball.drawable_p = &drawable;
 }
 
 PlayMode::~PlayMode() {
@@ -164,7 +166,6 @@ void PlayMode::update(float elapsed) {
 	//move camera:
 	{
 		//combine inputs into a move:
-		constexpr float PlayerSpeed = 30.0f;
 		float move = 0.0f;
 		if (left.pressed && !right.pressed) move = -glm::radians(90.0f) * elapsed;
 		if (!left.pressed && right.pressed) move = glm::radians(90.0f) * elapsed;
@@ -194,6 +195,7 @@ void PlayMode::update(float elapsed) {
 		}
     }
 
+
 	// ball-item collision
 	Platform* ball_platform = ball.platform_p;
 	if (ball_platform) {
@@ -205,7 +207,7 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 	}
-	
+
 
     while(platforms.size() < platform_cnt) {
         //make sure there are platform_cnt platforms all the time
@@ -216,12 +218,65 @@ void PlayMode::update(float elapsed) {
         platforms.emplace_back(1 + rand() % 4, rand() % 5, init_height);
     }
 
+
+    // check if ball fall to next round
+    if(ball.enter_hole() || platforms.front().height >= platform_max_height) {
+        if (platforms.front().height >= platform_max_height && invincible_left <= 0.01) {
+            player_life--;
+        }
+
+        // start deconstruct this level
+        deconstructing_platforms.push_back(*(ball.platform_p));
+        platforms.pop_front();
+        ball.platform_p = nullptr;
+        ball.is_falling = true;
+    }
+
+
+    // traverse all platform in deconstructing update its time
+    for(auto &p: deconstructing_platforms) {
+        p.time_since_deconstruct += elapsed;
+    }
+
+    //delete them after falling long enough
+    while(!deconstructing_platforms.empty() &&
+            deconstructing_platforms.front().time_since_deconstruct > deconstruct_last_sec) {
+        deconstructing_platforms.pop_front();
+    }
+
+    invincible_left = fmax(0.0f, invincible_left - elapsed);
+
+    if(ball.is_falling) {
+        double dist = sqrt(pow(ball.transform->position[0], 2) + pow(ball.transform->position[1], 2));
+        if(dist > Platform::INNER_RADIUS) {
+            // gg, fall out of the range,
+            if(ball.time_since_fall > 2.0f) {
+                // lose one HP, replace the ball
+                player_life--;
+                invincible_left = invincible_time;
+                ball.is_falling = false;
+                ball.time_since_fall = 0.0f;
+                ball.platform_p = &platforms.front();
+                ball.transform->position[0] = Platform::INNER_RADIUS / 2;
+                ball.transform->position[1] = 0;
+                ball.reset_speed();
+            }
+        } else if(ball.transform->position[2] - Ball::RADIUS <= platforms.front().height) {
+            ball.is_falling = false;
+            ball.time_since_fall = 0.0f;
+            ball.platform_p = &platforms.front();
+            invincible_left = invincible_time;
+            total_score += 3;
+        }
+    }
+
+
     // ball update
     if(hit_ball) {
         // our camera always looks at the central column, the forward hit, always, give
         // a hit forward based on the camera's view
         glm::vec2 init_speed = glm::vec2(0, 0) -
-                glm::vec2(camera->transform->position[0], camera->transform->position[1]);
+                               glm::vec2(camera->transform->position[0], camera->transform->position[1]);
         // normalize
         init_speed = ball_init_vel_per_hit * glm::normalize(init_speed);
 
@@ -242,61 +297,12 @@ void PlayMode::update(float elapsed) {
 
     // let ball roll or fall
     ball.roll(elapsed);
-
-    if(ball.is_falling) {
-        double dist = sqrt(pow(ball.transform->position[0], 2) + pow(ball.transform->position[1], 2));
-        if(dist > Platform::INNER_RADIUS) {
-            // gg, fall out of the range,
-            if(ball.time_since_fall > 2.0f) {
-                // lose one HP, replace the ball
-                player_life--;
-                ball.is_falling = false;
-                ball.time_since_fall = 0.0f;
-                ball.platform_p = &platforms.front();
-                ball.transform->position[0] = Platform::INNER_RADIUS / 2;
-                ball.transform->position[1] = 0;
-                ball.reset_speed();
-            }
-        } else if(ball.transform->position[2] <= platforms.front().height) {
-            ball.is_falling = false;
-            ball.time_since_fall = 0.0f;
-            ball.platform_p = &platforms.front();
-            invincible_left = invincible_time;
-        }
+    
+    if(player_life <= 0) {
+        ball.transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+        player_life = 0;
     }
 
-
-    // check if ball fall to next round
-    if(ball.enter_hole() || platforms.front().height >= platform_max_height) {
-        // start deconstruct this level
-        deconstructing_platforms.push_back(*(ball.platform_p));
-        platforms.pop_front();
-        ball.platform_p = nullptr;
-        ball.is_falling = true;
-
-        if (platforms.front().height >= platform_max_height && invincible_left <= 0.01) {
-            player_life--;
-        }
-    }
-
-
-    if(ball.enter_red() && invincible_left <= 0.001) {
-        player_life--;
-        invincible_left = invincible_time;
-    } else {
-        invincible_left = fmax(0.0f, invincible_left - elapsed);
-    }
-
-    // traverse all platform in deconstructing update its time
-    for(auto &p: deconstructing_platforms) {
-        p.time_since_deconstruct += elapsed;
-    }
-
-    //delete them after falling long enough
-    while(!deconstructing_platforms.empty() &&
-            deconstructing_platforms.front().time_since_deconstruct > deconstruct_last_sec) {
-        deconstructing_platforms.pop_front();
-    }
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
@@ -356,6 +362,12 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
         }
     }
 
+    if(invincible_left >= 0.01) {
+        ball.drawable_p->mesh = &(ball_escape_meshes->lookup("Ball_Invincible"));
+    } else {
+        ball.drawable_p->mesh = &(ball_escape_meshes->lookup("Ball"));
+    }
+
     scene.draw(*camera);
 
     {
@@ -381,7 +393,11 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		));
 
 		std::stringstream ss;
-		ss << "Score: " << total_score;
+		if(player_life > 0) {
+            ss << "Score: " << total_score;
+		} else {
+            ss << "Game Over! Score: " << total_score;
+        }
 
 		constexpr float H = 0.09f;
 		lines.draw_text(ss.str(),

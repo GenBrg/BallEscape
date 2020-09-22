@@ -27,8 +27,9 @@ Platform::Platform(int hole_cnt, int red_cnt, double height_): height(height_), 
             secType = Sector::SecType::HOLE;
             hole_left--;
         } else if (rand_val < hole_left + red_left) {
-            secType = Sector::SecType::RED;
+            secType = Sector::SecType::NORMAL;
             red_left--;
+            items.emplace_back(Item::Type::SKULL, this, i, rand() % 3);
         } else {
             secType = Sector::SecType::NORMAL;
             normal_left--;

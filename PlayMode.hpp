@@ -58,9 +58,9 @@ struct PlayMode : Mode {
 	// make sure there are at least 10 platforms in the vector
 	size_t platform_cnt = 5;
 
-	const double platform_max_height = 3.0f;
+	const double platform_max_height = 2.2f;
 
-    const double invincible_time = 3.0f;
+    const double invincible_time = 1.0f;
     double invincible_left = 0.0;
 
 	//
