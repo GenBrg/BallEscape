@@ -1,8 +1,10 @@
-# (TODO: your game's title)
+# Ball Escape
 
-Author: (TODO: your name)
+Author: Jiasheng Zhou \<jiashen2@andrew.cmu.edu\>
+        Hao Wang \<haowang2@andrew.cmu.edu\>
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+Design:
+It's a physic-based ball escape game where player control a ball and try to drop through the hole to escape from the death machine.
 
 Screen Shot:
 
@@ -10,14 +12,18 @@ Screen Shot:
 
 How To Play:
 
-(TODO: describe the controls and (if needed) goals/strategy.)
+Controls:\
+A: Camera move left\
+D: Camera move right\
+Arrow keys: Control the ball.\
 
-Sources: (TODO: list a source URL for any assets you did not create yourself. Make sure you have a license for the asset.)
+Goal:\
+Survive as long as possible and achieve the highest score.
 
 This game was built with [NEST](NEST.md).
 
-
 # Resources
+
 Heart:
 https://www.turbosquid.com/3d-models/obj-love-heart/1050666 License: https://blog.turbosquid.com/turbosquid-3d-model-license/
 

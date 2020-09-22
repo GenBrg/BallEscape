@@ -41,7 +41,8 @@ PlayMode::PlayMode() : scene(*ball_escape_scene) {
 	camera = &scene.cameras.front();
 	// glm::mat3 camera_rotation_mat = glm::mat3_cast(camera->transform->rotation);
 	// glm::vec3 camera_up(camera_rotation_mat[0][2], camera_rotation_mat[1][2], camera_rotation_mat[2][2]);
-	// camera->transform->rotation = glm::quat_cast(glm::lookAt(camera->transform->position, glm::vec3(0.0f, 0.0f, 0.0f), camera_up));
+	// camera->transform->rotation = glm::quat_cast(glm::lookAt(camera->transform->position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+	
 
 	// put ball
     scene.drawables.emplace_back(ball.transform);
@@ -144,7 +145,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	} else if (evt.type == SDL_MOUSEMOTION) {
 		if (SDL_GetRelativeMouseMode() == SDL_TRUE) {
 			glm::vec2 motion = glm::vec2(
-				evt.motion.xrel / float(window_size.y),
+				0,
 				-evt.motion.yrel / float(window_size.y)
 			);
 			camera->transform->rotation = glm::normalize(
@@ -164,21 +165,18 @@ void PlayMode::update(float elapsed) {
 	{
 		//combine inputs into a move:
 		constexpr float PlayerSpeed = 30.0f;
-		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed) move.x =-1.0f;
-		if (!left.pressed && right.pressed) move.x = 1.0f;
-		if (down.pressed && !up.pressed) move.y =-1.0f;
-		if (!down.pressed && up.pressed) move.y = 1.0f;
+		float move = 0.0f;
+		if (left.pressed && !right.pressed) move = -glm::radians(90.0f) * elapsed;
+		if (!left.pressed && right.pressed) move = glm::radians(90.0f) * elapsed;
 
 		//make it so that moving diagonally doesn't go faster:
-		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
-
-		glm::mat4x3 frame = camera->transform->make_local_to_parent();
-		glm::vec3 right = frame[0];
-		//glm::vec3 up = frame[1];
-		glm::vec3 forward = -frame[2];
-
-		camera->transform->position += move.x * right + move.y * forward;
+		if (move != 0.0f) {
+			glm::mat4x3 transform_mat = camera->transform->make_local_to_parent();
+			transform_mat = mat3_cast(glm::angleAxis(move, glm::vec3(0.0f, 0.0f, 1.0f))) * transform_mat;
+			camera->transform->position = transform_mat[3];
+			glm::mat3 rot(transform_mat[0], transform_mat[1], transform_mat[2]);
+			camera->transform->rotation = glm::quat_cast(rot);
+		}
 	}
 
 	//reset button press counters:
