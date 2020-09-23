@@ -17,8 +17,8 @@ Controls:
 
     A: Camera move left
     D: Camera move right
-    W: Camera up 
-    S: Camera down
+    Mouse up: Camera up 
+    Mouse down: Camera down
     Arrow keys: Control the movement of the ball (each time pressing the key, there will be a small force applying to the ball. If you want a large force for the ball, click the key multiple times).
 
 Goal:\
